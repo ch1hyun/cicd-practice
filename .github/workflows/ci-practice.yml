@@ -22,7 +22,16 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
+
+      - name: Copy Secret To application module
+        env:
+          OCCUPY_SECRET: ${{ secrets.PROPERTIES }}
+          OCCUPY_SECRET_DIR: ./application/src/main/resources
+          OCCUPY_SECRET_TEST_DIR: ./application/src/test/resources
+          OCCUPY_SECRET_DIR_FILE_NAME: application.yml
+        run:  echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_DIR_FILE_NAME &&
+              echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_TEST_DIR/$OCCUPY_SECRET_DIR_FILE_NAME
 
       - name: Cache Gradle packages
         uses: actions/cache@v2
