@@ -8,43 +8,46 @@
 name: Java CI with Gradle PR Test
 
 on:
+  push:
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ "develop", "main" ]
+    branches:
+      - develop
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3          # 레포지토리의 최신 소스 코드를 workflow의 작업 디렉토리로 복사
+      - uses: actions/checkout@v3
 
+      ## jdk setting
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: Copy Secret To application module
-        env:
-          OCCUPY_SECRET: ${{ secrets.PROPERTIES }}
-          OCCUPY_SECRET_DIR: ./application/src/main/resources
-          OCCUPY_SECRET_TEST_DIR: ./application/src/test/resources
-          OCCUPY_SECRET_DIR_FILE_NAME: application.yml
-        run:  echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_DIR/$OCCUPY_SECRET_DIR_FILE_NAME &&
-              echo $OCCUPY_SECRET | base64 --decode > $OCCUPY_SECRET_TEST_DIR/$OCCUPY_SECRET_DIR_FILE_NAME
+      ## application.yml 파일 생성
+      - name: make application.yml
+        run: |
+          cd ./src/main/resources
+          touch ./application.yml
+          echo "${{ secrets.APPLICATION }}" > ./application.yml
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path:
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+      ## application-dev.yml 파일 생성
 
+      ## jwt.yml 파일 생성
+
+      ## log4j2.yml 파일 생성
+
+      ## gradlew 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build with Gradle (without Test)
+        run: ./gradlew clean build -x test --stacktrace
