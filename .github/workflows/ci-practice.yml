@@ -58,3 +58,14 @@ jobs:
 
       - name: Build with Gradle (without Test)
         run: ./gradlew clean build -x test --stacktrace
+
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            whoami
+            ls -al
