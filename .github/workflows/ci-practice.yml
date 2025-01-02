@@ -58,9 +58,8 @@ jobs:
       ## application.yml 파일 생성
       - name: make application.yml
         run: |
-          cd ./src/main/resources
-          touch ./application.yml
-          echo "${{ secrets.APPLICATION }}" > ./application.yml
+          touch ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
         working-directory: ${{ env.working-directory }}
 
       ## application-dev.yml 파일 생성
