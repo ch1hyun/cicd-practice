@@ -20,10 +20,15 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  ci:
+    runs-on: ubuntu-24.04
+    env:
+      working-directory: .
+
+
     steps:
-      - uses: actions/checkout@v3
+      - name: 체크아웃
+        uses: actions/checkout@v3
 
       ## jdk setting
       - name: Set up JDK 17
@@ -39,12 +44,24 @@ jobs:
             mkdir -p ./src/main/resources
           fi
 
+      # gradle caching - 빌드 시간 향상
+      - name: Gradle Caching (빌드 시간 향상)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       ## application.yml 파일 생성
       - name: make application.yml
         run: |
           cd ./src/main/resources
           touch ./application.yml
           echo "${{ secrets.APPLICATION }}" > ./application.yml
+        working-directory: ${{ env.working-directory }}
 
       ## application-dev.yml 파일 생성
 
@@ -52,20 +69,43 @@ jobs:
 
       ## log4j2.yml 파일 생성
 
-      ## gradlew 실행 권한 부여
+      ## gradlew 실행 권한 부여 및 빌드
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: |
+          chmod +x gradlew
+          ./gradlew build -x test
+        working-directory: ${{ env.working-directory }}
+        shell: bash
 
-      - name: Build with Gradle (without Test)
-        run: ./gradlew clean build -x test --stacktrace
+      - name: docker 로그인
+        uses: docker/setup-buildx-action@v2.9.1
 
-      - name: executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@v0.1.10
+      - name: login docker hub
+        uses: docker/login-action@v2.2.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: docker image 빌드 및 푸시
+        run: |
+          docker build --platform linux/amd64 -t chyun11/cicd-practice .
+          docer push chyun11/cicd-practice
+        working-directory: ${{ env.working-directory }}
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Debugging - Echo Host
+        run: echo "${{ secrets.HOST }}"
+
+      - name: docker 컨테이너 실행
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
-          port: ${{ secrets.PORT }}
           script: |
-            whoami
+            cd ~
             ls -al
