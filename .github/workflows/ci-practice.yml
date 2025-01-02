@@ -89,7 +89,7 @@ jobs:
       - name: docker image 빌드 및 푸시
         run: |
           docker build --platform linux/amd64 -t chyun11/cicd-practice .
-          docer push chyun11/cicd-practice
+          docker push chyun11/cicd-practice
         working-directory: ${{ env.working-directory }}
 
   cd:
