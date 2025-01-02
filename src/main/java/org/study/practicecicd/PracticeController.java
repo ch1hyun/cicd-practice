@@ -16,6 +16,11 @@ public class PracticeController {
 
     private final PracticeService practiceService;
 
+    @GetMapping("/check")
+    public ResponseEntity<String> check() {
+        return ResponseEntity.ok("CONNECT SUCCESS");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PracticeResponse> getPractice(@PathVariable long id) {
         PracticeDTO practiceDTO = practiceService.getPractice(id);
