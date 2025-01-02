@@ -31,7 +31,7 @@ public class PracticeController {
     public ResponseEntity<String> savePractice(@RequestParam String name) {
         PracticeDTO practiceDTO = new PracticeDTO(null, name);
         practiceService.savePractice(practiceDTO);
-        int a = 5;
+        int a = 6;
         return ResponseEntity.status(201).build();
     }
 }
